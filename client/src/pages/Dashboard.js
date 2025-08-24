@@ -7,8 +7,6 @@ import {
   BriefcaseIcon,
   DocumentTextIcon,
   UserGroupIcon,
-  ChartBarIcon,
-  PlusIcon,
   EyeIcon,
   ClockIcon,
   CheckCircleIcon,
@@ -16,38 +14,95 @@ import {
 } from '@heroicons/react/24/outline';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated, token } = useAuth();
 
   // Fetch data based on user role
-  const { data: applications, isLoading: applicationsLoading } = useQuery({
+  const { data: applicationsResponse, isLoading: applicationsLoading, error: applicationsError } = useQuery({
     queryKey: ['applications', user?.role],
-    queryFn: () => {
-      if (user?.role === 'applicant') {
-        return applicationsAPI.getMyApplications({ limit: 5 });
-      } else if (user?.role === 'employer') {
-        return applicationsAPI.getEmployerApplications({ limit: 5 });
+    queryFn: async () => {
+      try {
+        if (user?.role === 'applicant') {
+          const response = await applicationsAPI.getMyApplications({ limit: 5 });
+          return response.data || response;
+        } else if (user?.role === 'employer') {
+          const response = await applicationsAPI.getEmployerApplications({ limit: 5 });
+          return response.data || response;
+        }
+        return null;
+      } catch (error) {
+        console.error('Error fetching applications:', error);
+        throw error;
       }
-      return null;
     },
-    enabled: !!user
+    enabled: !!user,
+    retry: 2,
+    onError: (error) => {
+      console.error('Error fetching applications:', error);
+      console.error('Applications error response:', error.response?.data);
+      console.error('Applications error status:', error.response?.status);
+    },
+    onSuccess: (data) => {
+      console.log('Applications data received:', data);
+      console.log('Applications data type:', typeof data);
+      console.log('Applications data keys:', Object.keys(data || {}));
+      console.log('Applications.applications:', data?.applications);
+      console.log('Applications length:', data?.length);
+    }
   });
 
-  const { data: jobs, isLoading: jobsLoading } = useQuery({
+  // Extract applications array from the response
+  const applications = applicationsResponse?.applications || applicationsResponse || [];
+
+  const { data: jobsResponse, isLoading: jobsLoading, error: jobsError } = useQuery({
     queryKey: ['jobs', user?.role],
-    queryFn: () => {
-      if (user?.role === 'employer') {
-        return jobsAPI.getMyJobs({ limit: 5 });
+    queryFn: async () => {
+      try {
+        if (user?.role === 'employer') {
+          const response = await jobsAPI.getMyJobs({ limit: 5 });
+          return response.data || response;
+        }
+        return null;
+      } catch (error) {
+        console.error('Error fetching jobs:', error);
+        throw error;
       }
-      return null;
     },
-    enabled: !!user && user?.role === 'employer'
+    enabled: !!user && user?.role === 'employer',
+    retry: 2,
+    onError: (error) => {
+      console.error('Error fetching jobs:', error);
+      console.error('Jobs error response:', error.response?.data);
+      console.error('Jobs error status:', error.response?.status);
+    },
+    onSuccess: (data) => {
+      console.log('Jobs data received:', data);
+      console.log('Jobs data type:', typeof data);
+      console.log('Jobs data keys:', Object.keys(data || {}));
+      console.log('Jobs.jobs:', data?.jobs);
+      console.log('Jobs length:', data?.length);
+    }
   });
 
-  const { data: stats } = useQuery({
+  // Extract jobs array from the response
+  const jobs = jobsResponse?.jobs || jobsResponse || [];
+
+  const { data: statsResponse } = useQuery({
     queryKey: ['application-stats'],
-    queryFn: () => applicationsAPI.getApplicationStats(),
-    enabled: !!user
+    queryFn: async () => {
+      try {
+        const response = await applicationsAPI.getApplicationStats();
+        return response.data || response;
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+        throw error;
+      }
+    },
+    enabled: !!user,
+    retry: 2
   });
+
+  // Extract stats from the response
+  const stats = statsResponse?.stats || statsResponse || {};
 
   const getStatusColor = (status) => {
     const colors = {
@@ -177,9 +232,14 @@ const Dashboard = () => {
               <div className="flex items-center justify-center py-8">
                 <div className="spinner w-8 h-8"></div>
               </div>
-            ) : applications?.applications?.length > 0 ? (
+            ) : applicationsError ? (
+              <div className="text-center py-8">
+                <div className="text-red-500 text-lg mb-2">Error loading applications</div>
+                <p className="text-gray-400">Please try refreshing the page</p>
+              </div>
+            ) : (applications?.applications?.length > 0 || applications?.length > 0 || (Array.isArray(applications) && applications.length > 0)) ? (
               <div className="space-y-4">
-                {applications.applications.map((application) => {
+                {(applications?.applications || (Array.isArray(applications) ? applications : []) || []).map((application) => {
                   const StatusIcon = getStatusIcon(application.status);
                   return (
                     <div key={application._id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
@@ -189,10 +249,13 @@ const Dashboard = () => {
                         </div>
                         <div>
                           <h3 className="font-medium text-gray-900">
-                            {application.job?.title}
+                            {application.job?.title || 'Job Title Not Available'}
                           </h3>
                           <p className="text-sm text-gray-500">
-                            {application.job?.company?.name}
+                            {user?.role === 'employer' 
+                              ? `${application.applicant?.firstName} ${application.applicant?.lastName}`
+                              : application.job?.company?.name || 'Unknown Company'
+                            }
                           </p>
                         </div>
                       </div>
@@ -225,6 +288,14 @@ const Dashboard = () => {
                     Browse Jobs
                   </Link>
                 )}
+                {user.role === 'employer' && (
+                  <div className="text-xs text-gray-400 mt-2">
+                    Debug: applications.length = {applications?.length || 0},
+                    isArray = {Array.isArray(applications) ? 'true' : 'false'},
+                    isAuthenticated = {isAuthenticated ? 'true' : 'false'},
+                    hasToken = {token ? 'true' : 'false'}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -253,9 +324,14 @@ const Dashboard = () => {
                 <div className="flex items-center justify-center py-8">
                   <div className="spinner w-8 h-8"></div>
                 </div>
-              ) : jobs?.jobs?.length > 0 ? (
+              ) : jobsError ? (
+                <div className="text-center py-8">
+                  <div className="text-red-500 text-lg mb-2">Error loading jobs</div>
+                  <p className="text-gray-400">Please try refreshing the page</p>
+                </div>
+              ) : (jobs?.jobs?.length > 0 || jobs?.length > 0 || (Array.isArray(jobs) && jobs.length > 0)) ? (
                 <div className="space-y-4">
-                  {jobs.jobs.map((job) => (
+                  {(jobs?.jobs || (Array.isArray(jobs) ? jobs : []) || []).map((job) => (
                     <div key={job._id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                       <div>
                         <h3 className="font-medium text-gray-900">{job.title}</h3>
@@ -265,7 +341,7 @@ const Dashboard = () => {
                             {job.type}
                           </span>
                           <span className="text-xs text-gray-500">
-                            {job.applications} applications
+                            {job.applications || 0} applications
                           </span>
                         </div>
                       </div>
@@ -288,6 +364,12 @@ const Dashboard = () => {
                   >
                     Post Your First Job
                   </Link>
+                  <div className="text-xs text-gray-400 mt-2">
+                    Debug: jobs.length = {jobs?.length || 0},
+                    isArray = {Array.isArray(jobs) ? 'true' : 'false'},
+                    isAuthenticated = {isAuthenticated ? 'true' : 'false'},
+                    hasToken = {token ? 'true' : 'false'}
+                  </div>
                 </div>
               )
             ) : (
@@ -344,9 +426,15 @@ const Dashboard = () => {
           </div>
           <div className="card-body">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Debug info */}
+              <div className="col-span-3 text-xs text-gray-400 mb-4">
+                Debug Stats: shortlisted = {stats?.shortlisted || 0}, 
+                interviewed = {stats?.interviewed || 0}, 
+                total = {stats?.total || 0}
+              </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-primary-600 mb-2">
-                  {user.role === 'applicant' ? '0' : '0'}
+                  {user.role === 'applicant' ? '0' : (jobs?.length || 0)}
                 </div>
                 <p className="text-sm text-gray-600">
                   {user.role === 'applicant' ? 'Jobs Applied This Month' : 'Jobs Posted This Month'}

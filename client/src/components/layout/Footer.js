@@ -4,7 +4,8 @@ import {
   BriefcaseIcon,
   EnvelopeIcon,
   PhoneIcon,
-  MapPinIcon
+  MapPinIcon,
+  ArrowRightIcon
 } from '@heroicons/react/24/outline';
 
 const Footer = () => {
@@ -36,37 +37,39 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-white border-t border-gray-200">
+    <footer className="bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
       <div className="container-responsive">
-        <div className="py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="py-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
             {/* Company Info */}
             <div className="lg:col-span-1">
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                  <BriefcaseIcon className="w-5 h-5 text-white" />
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <BriefcaseIcon className="w-7 h-7 text-white" />
                 </div>
-                <span className="text-xl font-bold text-gradient">JobPortal</span>
+                <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  JobPortal
+                </span>
               </div>
-              <p className="text-gray-600 text-sm mb-4">
+              <p className="text-gray-300 text-lg mb-6 leading-relaxed">
                 Connecting talented professionals with amazing opportunities. 
                 Find your dream job or hire the perfect candidate.
               </p>
-              <div className="space-y-2">
-                <div className="flex items-center text-sm text-gray-600">
-                  <EnvelopeIcon className="w-4 h-4 mr-2" />
-                  <a href="mailto:contact@jobportal.com" className="hover:text-primary-600">
+              <div className="space-y-4">
+                <div className="flex items-center text-gray-300 hover:text-white transition-colors duration-200">
+                  <EnvelopeIcon className="w-5 h-5 mr-3 text-blue-400" />
+                  <a href="mailto:contact@jobportal.com" className="hover:text-blue-400 transition-colors duration-200">
                     contact@jobportal.com
                   </a>
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <PhoneIcon className="w-4 h-4 mr-2" />
-                  <a href="tel:+1234567890" className="hover:text-primary-600">
+                <div className="flex items-center text-gray-300 hover:text-white transition-colors duration-200">
+                  <PhoneIcon className="w-5 h-5 mr-3 text-blue-400" />
+                  <a href="tel:+1234567890" className="hover:text-blue-400 transition-colors duration-200">
                     +1 (234) 567-890
                   </a>
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <MapPinIcon className="w-4 h-4 mr-2" />
+                <div className="flex items-center text-gray-300">
+                  <MapPinIcon className="w-5 h-5 mr-3 text-blue-400" />
                   <span>123 Job Street, Career City, CC 12345</span>
                 </div>
               </div>
@@ -74,16 +77,22 @@ const Footer = () => {
 
             {/* For Job Seekers */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 tracking-wider uppercase mb-4">
+              <h3 className="text-lg font-semibold text-white mb-6 flex items-center">
+                <span className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                  </svg>
+                </span>
                 For Job Seekers
               </h3>
-              <ul className="space-y-3">
+              <ul className="space-y-4">
                 {navigation.jobseekers.map((item) => (
                   <li key={item.name}>
                     <Link
                       to={item.href}
-                      className="text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200"
+                      className="text-gray-300 hover:text-white transition-colors duration-200 flex items-center group"
                     >
+                      <ArrowRightIcon className="w-4 h-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                       {item.name}
                     </Link>
                   </li>
@@ -93,16 +102,22 @@ const Footer = () => {
 
             {/* For Employers */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 tracking-wider uppercase mb-4">
+              <h3 className="text-lg font-semibold text-white mb-6 flex items-center">
+                <span className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center mr-3">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                  </svg>
+                </span>
                 For Employers
               </h3>
-              <ul className="space-y-3">
+              <ul className="space-y-4">
                 {navigation.employers.map((item) => (
                   <li key={item.name}>
                     <Link
                       to={item.href}
-                      className="text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200"
+                      className="text-gray-300 hover:text-white transition-colors duration-200 flex items-center group"
                     >
+                      <ArrowRightIcon className="w-4 h-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                       {item.name}
                     </Link>
                   </li>
@@ -112,16 +127,22 @@ const Footer = () => {
 
             {/* Support & Legal */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 tracking-wider uppercase mb-4">
+              <h3 className="text-lg font-semibold text-white mb-6 flex items-center">
+                <span className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center mr-3">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-2 0c0 .993-.241 1.929-.668 2.754l-1.524-1.525a3.997 3.997 0 00.078-2.183l1.562-1.562C15.802 8.249 16 9.1 16 10zm-5.165 3.913l1.58 1.58A5.98 5.98 0 0110 16a5.976 5.976 0 01-2.516-.552l1.562-1.562a4.006 4.006 0 001.789.027zm-4.677-2.796a4.002 4.002 0 01-.041-2.08l-.08.08-1.53-1.533A5.98 5.98 0 004 10c0 .954.223 1.856.619 2.657l1.54-1.54zm1.088-6.45A5.974 5.974 0 0110 4c.954 0 1.856.223 2.657.619l-1.54 1.54a4.002 4.002 0 00-2.346.033L7.246 4.668zM12 10a2 2 0 11-4 0 2 2 0 014 0z" clipRule="evenodd" />
+                  </svg>
+                </span>
                 Support & Legal
               </h3>
-              <ul className="space-y-3">
+              <ul className="space-y-4">
                 {navigation.support.map((item) => (
                   <li key={item.name}>
                     <Link
                       to={item.href}
-                      className="text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200"
+                      className="text-gray-300 hover:text-white transition-colors duration-200 flex items-center group"
                     >
+                      <ArrowRightIcon className="w-4 h-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                       {item.name}
                     </Link>
                   </li>
@@ -132,16 +153,18 @@ const Footer = () => {
         </div>
 
         {/* Bottom section */}
-        <div className="border-t border-gray-200 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="flex items-center space-x-6">
-              <p className="text-sm text-gray-600">
+        <div className="border-t border-gray-700 py-8">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
+            <div className="flex items-center space-x-8">
+              <p className="text-gray-300">
                 © {currentYear} JobPortal. All rights reserved.
               </p>
               <div className="flex space-x-4">
                 <a
-                  href="#"
-                  className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                  href="https://facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-gray-800 rounded-xl flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-200"
                 >
                   <span className="sr-only">Facebook</span>
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -153,8 +176,10 @@ const Footer = () => {
                   </svg>
                 </a>
                 <a
-                  href="#"
-                  className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                  href="https://twitter.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-gray-800 rounded-xl flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-200"
                 >
                   <span className="sr-only">Twitter</span>
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -162,8 +187,10 @@ const Footer = () => {
                   </svg>
                 </a>
                 <a
-                  href="#"
-                  className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                  href="https://linkedin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-gray-800 rounded-xl flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-200"
                 >
                   <span className="sr-only">LinkedIn</span>
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -177,16 +204,16 @@ const Footer = () => {
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-6">
               <Link
                 to="/privacy"
-                className="text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200"
+                className="text-gray-300 hover:text-white transition-colors duration-200"
               >
                 Privacy Policy
               </Link>
               <Link
                 to="/terms"
-                className="text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200"
+                className="text-gray-300 hover:text-white transition-colors duration-200"
               >
                 Terms of Service
               </Link>

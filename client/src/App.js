@@ -19,6 +19,7 @@ import JobEdit from './pages/JobEdit';
 import Profile from './pages/Profile';
 import Applications from './pages/Applications';
 import ApplicationDetail from './pages/ApplicationDetail';
+import ApplicationForm from './pages/ApplicationForm';
 import './index.css';
 
 // Create a client
@@ -162,6 +163,14 @@ function AppContent() {
           />
 
           {/* Application Routes */}
+          <Route 
+            path="/jobs/:jobId/apply" 
+            element={
+              <ProtectedRoute allowedRoles={['applicant']}>
+                <ApplicationForm />
+              </ProtectedRoute>
+            } 
+          />
           <Route 
             path="/applications" 
             element={

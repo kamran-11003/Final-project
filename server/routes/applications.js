@@ -62,12 +62,12 @@ router.post('/', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    // Check if user has a CV uploaded in their profile
+    // Check if user has a CV uploaded in their profile or is uploading one
     if (!req.user.profile?.resume) {
-      return res.status(400).json({ message: 'Please upload your CV/Resume in your profile before applying for jobs' });
+      return res.status(400).json({ message: 'Please upload your CV/Resume before applying for jobs' });
     }
 
-    const { jobId, coverLetter, expectedSalary, availability } = req.body;
+    const { jobId, coverLetter, expectedSalary, availability, additionalNotes } = req.body;
 
     // Check if job exists and is active
     const job = await Job.findById(jobId);
@@ -93,11 +93,19 @@ router.post('/', [
     const application = new Application({
       job: jobId,
       applicant: req.user._id,
-      employer: job.employer,
+      employer: job.employer, // This should be the job's employer
       coverLetter,
-      resume: req.user.profile.resume, // Use CV from user's profile
-      expectedSalary: expectedSalary ? { amount: parseInt(expectedSalary.amount), currency: 'USD', period: 'yearly' } : {},
-      availability: availability || 'immediate'
+      resume: req.user.profile.resume || '', // Use CV from user's profile
+      expectedSalary: expectedSalary ? { amount: parseInt(expectedSalary), currency: 'USD', period: 'yearly' } : {},
+      availability: availability || 'immediate',
+      notes: additionalNotes ? { applicant: additionalNotes } : {}
+    });
+
+    console.log('Creating application with:', {
+      jobId,
+      applicant: req.user._id,
+      employer: job.employer,
+      jobEmployer: job.employer
     });
 
     await application.save();
@@ -213,13 +221,22 @@ router.get('/employer', [
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const query = { employer: req.user._id };
+    // For employers, we need to find applications for jobs they posted
+    // First, get all jobs posted by this employer
+    const employerJobs = await Job.find({ employer: req.user._id }).select('_id');
+    const jobIds = employerJobs.map(job => job._id);
+    
+    const query = { job: { $in: jobIds } };
     if (req.query.status) {
       query.status = req.query.status;
     }
     if (req.query.jobId) {
       query.job = req.query.jobId;
     }
+
+    console.log('Employer applications query:', query);
+    console.log('User ID:', req.user._id);
+    console.log('Employer job IDs:', jobIds);
 
     const applications = await Application.find(query)
       .populate('job', 'title company.name location salary type experience')
@@ -230,9 +247,12 @@ router.get('/employer', [
 
     const total = await Application.countDocuments(query);
 
-    // Calculate stats
+    console.log('Found applications:', applications.length);
+    console.log('Total applications:', total);
+
+    // Calculate stats for applications to jobs posted by this employer
     const stats = await Application.aggregate([
-      { $match: { employer: req.user._id } },
+      { $match: { job: { $in: jobIds } } },
       {
         $group: {
           _id: '$status',
@@ -300,15 +320,33 @@ router.put('/:id/status', [
       return res.status(404).json({ message: 'Application not found' });
     }
 
-    // Check if the employer owns this application
-    if (application.employer.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to update this application' });
+    // Check if the current user is the employer for this application
+    console.log('Authorization check:', {
+      applicationEmployer: application.employer._id.toString(),
+      currentUser: req.user._id.toString(),
+      applicationId: applicationId,
+      match: application.employer._id.toString() === req.user._id.toString()
+    });
+    
+    if (application.employer._id.toString() !== req.user._id.toString()) {
+      console.log('Authorization failed:', {
+        applicationEmployer: application.employer._id.toString(),
+        currentUser: req.user._id.toString(),
+        applicationId: applicationId
+      });
+      return res.status(403).json({ 
+        message: 'Not authorized to update this application. You can only update applications for jobs you posted.' 
+      });
     }
 
     const oldStatus = application.status;
     application.status = status;
     if (notes) {
-      application.notes = notes;
+      // Update the employer notes field
+      if (!application.notes) {
+        application.notes = {};
+      }
+      application.notes.employer = notes;
     }
     application.updatedAt = new Date();
 

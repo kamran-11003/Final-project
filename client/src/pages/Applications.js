@@ -37,18 +37,33 @@ const Applications = () => {
   const { data: applicationsData, isLoading, error } = useQuery({
     queryKey: ['applications', user?.role],
     queryFn: async () => {
-      const response = user?.role === 'employer' 
-        ? await applicationsAPI.getEmployerApplications()
-        : await applicationsAPI.getMyApplications();
-      return response.data; // Extract data from response
+      try {
+        const response = user?.role === 'employer' 
+          ? await applicationsAPI.getEmployerApplications()
+          : await applicationsAPI.getMyApplications();
+        return response.data || response; // Handle both response formats
+      } catch (error) {
+        console.error('Error fetching applications:', error);
+        throw error;
+      }
+    },
+    enabled: !!user,
+    retry: 2,
+    onError: (error) => {
+      console.error('Applications query error:', error);
     }
   });
 
   // Update application status mutation
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status, notes }) => {
-      const response = await applicationsAPI.updateApplicationStatus(id, status, notes);
-      return response.data;
+      try {
+        const response = await applicationsAPI.updateApplicationStatus(id, status, notes);
+        return response.data || response;
+      } catch (error) {
+        console.error('Error updating application status:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
@@ -56,7 +71,8 @@ const Applications = () => {
       setSelectedApplication(null);
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to update application status');
+      console.error('Update status error:', error);
+      toast.error(error.response?.data?.message || 'Failed to update application status. Please check your permissions.');
     }
   });
 
